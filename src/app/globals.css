@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f3ee;
+  --surface: #fbfbf8;
+  --surface-strong: #ffffff;
+  --ink: #20231f;
+  --muted: #666b63;
+  --line: #d9dbd3;
+  --line-strong: #b9bdb3;
+  --accent: #225c45;
+  --accent-soft: #e3eee8;
+  --warning: #8a6315;
+  --warning-soft: #f6ecd3;
+  --danger: #9a3e33;
+  --danger-soft: #f8e4e1;
+  --info: #355b7e;
+  --info-soft: #e4edf5;
+  --sidebar: #1f2721;
+  --sidebar-ink: #f2f4ee;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background:
+    linear-gradient(rgba(31, 39, 33, 0.025) 1px, transparent 1px),
+    var(--background);
+  background-size: 100% 28px;
+  color: var(--ink);
+  font-family: "IBM Plex Sans Variable", "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #bbd6c7;
+  color: #12261d;
+}
+
+:focus-visible {
+  outline: 2px solid #2f7559;
+  outline-offset: 2px;
+}
+
+.scrollbar-thin {
+  scrollbar-color: #acb1a7 transparent;
+  scrollbar-width: thin;
+}
+
+.page-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 1px 0 rgba(31, 39, 33, 0.03);
+}
+
+.field {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  padding: 8px 10px;
+}
+
+.field::placeholder {
+  color: #92978f;
+}
+
+textarea.field {
+  resize: vertical;
+}
+
+.label {
+  display: block;
+  margin-bottom: 5px;
+  color: #4e544d;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.btn {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.btn:hover {
+  border-color: #8f968b;
+  background: #f2f3ee;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  border-color: #184b37;
+  background: #184b37;
+}
+
+.btn-danger {
+  border-color: #d6a59f;
+  color: var(--danger);
+}
+
+.btn[aria-disabled="true"],
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid var(--line-strong);
+  background: #ebece6;
+  color: #50564f;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table td {
+  border-bottom: 1px solid #e6e7e1;
+  padding: 9px 10px;
+  vertical-align: top;
+}
+
+.data-table tbody tr:hover td {
+  background: #f5f6f1;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 860px) {
+  body {
+    background-size: 100% 24px;
+    font-size: 13px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px;
+  }
+}
