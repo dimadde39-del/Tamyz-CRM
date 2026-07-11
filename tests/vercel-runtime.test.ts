@@ -37,7 +37,7 @@ describe("Vercel SQLite runtime", () => {
     seed = undefined;
 
     vi.stubEnv("DATABASE_URL", "");
-    vi.stubEnv("VERCEL", "1");
+    vi.stubEnv("VERCEL_REGION", "iad1");
     vi.stubEnv("VERCEL_SQLITE_SEED_PATH", seedPath);
     vi.stubEnv("VERCEL_SQLITE_PATH", runtimePath);
 
