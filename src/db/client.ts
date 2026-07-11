@@ -19,7 +19,7 @@ export interface DatabaseContext {
 const LOCAL_DATABASE_URL = "./data/tamyz-ops.db";
 
 function isVercelEphemeralSqlite(databaseUrl?: string): boolean {
-  return databaseUrl === undefined && process.env.VERCEL === "1" && !process.env.DATABASE_URL;
+  return databaseUrl === undefined && Boolean(process.env.VERCEL_REGION) && !process.env.DATABASE_URL;
 }
 
 function defaultDatabaseUrl(): string {
