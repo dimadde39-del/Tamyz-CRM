@@ -23,6 +23,12 @@ const actionLabels: Record<string, string> = {
   status_changed: "Статус изменён",
   follow_up_created: "Создан follow-up",
   details_updated: "Данные обновлены",
+  client_registration_created: "Создана регистрация клиента",
+  client_registration_requested: "Запрошено закрепление клиента",
+  client_registration_response_recorded: "Зафиксирован ответ по регистрации",
+  client_introduction_recorded: "Стороны познакомлены",
+  economics_scenario_created: "Создан сценарий экономики",
+  economics_scenario_updated: "Обновлён сценарий экономики",
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;

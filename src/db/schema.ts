@@ -2,6 +2,8 @@ import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-or
 
 import {
   ACTIVITY_TYPES,
+  CLIENT_REGISTRATION_RESPONSE_TYPES,
+  CLIENT_REGISTRATION_STATUSES,
   CLIENT_STATUSES,
   OWNERS,
   PRIORITIES,
@@ -137,6 +139,7 @@ export const clients = sqliteTable(
     confidenceReason: text("confidence_reason"),
     contactQuality: text("contact_quality"),
     name: text("name").notNull(),
+    bin: text("bin"),
     category: text("category"),
     address: text("address"),
     whatsapp: text("whatsapp"),
@@ -264,6 +267,84 @@ export const testBasketItems = sqliteTable(
   (table) => [index("test_basket_items_basket_idx").on(table.testBasketId)],
 );
 
+export const clientRegistrations = sqliteTable(
+  "client_registrations",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    clientId: integer("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "restrict" }),
+    supplierId: integer("supplier_id")
+      .notNull()
+      .references(() => suppliers.id, { onDelete: "restrict" }),
+    status: text("status", { enum: CLIENT_REGISTRATION_STATUSES })
+      .notNull()
+      .default("черновик"),
+    responseType: text("response_type", { enum: CLIENT_REGISTRATION_RESPONSE_TYPES }),
+    requestedCommissionPercent: real("requested_commission_percent").notNull(),
+    confirmedCommissionPercent: real("confirmed_commission_percent"),
+    requestedRepeatCommissionMonths: integer("requested_repeat_commission_months").notNull(),
+    confirmedRepeatCommissionMonths: integer("confirmed_repeat_commission_months"),
+    commissionPaymentBusinessDays: integer("commission_payment_business_days").notNull(),
+    supplierResponseText: text("supplier_response_text"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+    requestSentAt: integer("request_sent_at", { mode: "timestamp_ms" }),
+    confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }),
+    introducedAt: integer("introduced_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    uniqueIndex("client_registrations_client_supplier_unique").on(
+      table.clientId,
+      table.supplierId,
+    ),
+    index("client_registrations_status_idx").on(table.status),
+    index("client_registrations_supplier_idx").on(table.supplierId),
+    index("client_registrations_request_sent_idx").on(table.requestSentAt),
+  ],
+);
+
+/**
+ * Operator-authored economics scenarios. Financial inputs live in the JSON
+ * snapshot so later edits to a supplier, registration, or basket cannot
+ * rewrite a saved calculation. Entity IDs remain references to the existing
+ * CRM records and are never duplicated here.
+ */
+export const economicsScenarios = sqliteTable(
+  "economics_scenarios",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    clientId: integer("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "restrict" }),
+    supplierId: integer("supplier_id")
+      .notNull()
+      .references(() => suppliers.id, { onDelete: "restrict" }),
+    registrationId: integer("registration_id").references(() => clientRegistrations.id, {
+      onDelete: "set null",
+    }),
+    testBasketId: integer("test_basket_id").references(() => testBaskets.id, {
+      onDelete: "set null",
+    }),
+    copiedFromScenarioId: integer("copied_from_scenario_id"),
+    owner: text("owner", { enum: OWNERS }).notNull(),
+    title: text("title").notNull(),
+    termsStatus: text("terms_status", { enum: ["draft", "confirmed"] as const }).notNull(),
+    earningMode: text("earning_mode", {
+      enum: ["referral_commission", "dealer_spread", "fixed_fee"] as const,
+    }).notNull(),
+    calculationVersion: integer("calculation_version").notNull().default(1),
+    snapshotJson: text("snapshot_json").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+  },
+  (table) => [
+    index("economics_scenarios_client_idx").on(table.clientId),
+    index("economics_scenarios_supplier_idx").on(table.supplierId),
+    index("economics_scenarios_updated_idx").on(table.updatedAt),
+  ],
+);
+
 export const activityLog = sqliteTable(
   "activity_log",
   {
@@ -321,3 +402,8 @@ export type ActivityLogEntry = typeof activityLog.$inferSelect;
 export type ImportRun = typeof importRuns.$inferSelect;
 export type TestBasket = typeof testBaskets.$inferSelect;
 export type TestBasketItem = typeof testBasketItems.$inferSelect;
+export type ClientRegistration = typeof clientRegistrations.$inferSelect;
+export type NewClientRegistration = typeof clientRegistrations.$inferInsert;
+export type ClientBasketItem = typeof clientBasketItems.$inferSelect;
+export type EconomicsScenario = typeof economicsScenarios.$inferSelect;
+export type NewEconomicsScenario = typeof economicsScenarios.$inferInsert;

@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run db:e2e:reset && npx next dev --hostname 127.0.0.1",
+    command: "npm run e2e:prepare && npm run db:e2e:reset && npx next dev --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: false,
     timeout: 120_000,

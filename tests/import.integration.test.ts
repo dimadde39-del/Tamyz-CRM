@@ -5,7 +5,13 @@ vi.hoisted(() => {
   process.env.DATABASE_URL = ":memory:";
 });
 
-import { activityLog, clients, importRuns, suppliers } from "@/db/schema";
+import {
+  createClientRegistration,
+  introduceClientToSupplier,
+  markClientRegistrationRequestSent,
+  recordClientRegistrationResponse,
+} from "@/db/client-registration-service";
+import { activityLog, clientRegistrations, clients, importRuns, suppliers } from "@/db/schema";
 import {
   KDS_COMMENT,
   KDS_EXTERNAL_KEY,
@@ -73,6 +79,60 @@ describe("real source workbook import", () => {
     expect(seededKds.nextAction).toBe(KDS_NEXT_ACTION);
     expect(context.db.select().from(activityLog).all()).toHaveLength(3);
 
+    const protectedClient = context.db.select().from(clients).limit(1).get()!;
+    context.db
+      .update(clients)
+      .set({ bin: "123456789012", problem: "Операторская потребность" })
+      .where(eq(clients.id, protectedClient.id))
+      .run();
+    const registration = createClientRegistration(
+      {
+        clientId: protectedClient.id,
+        supplierId: seededKds.id,
+        actor: "Ерасыл",
+        requestedCommissionPercent: 10,
+        requestedRepeatCommissionMonths: 12,
+        commissionPaymentBusinessDays: 5,
+        occurredAt: new Date("2026-07-10T08:00:00.000Z"),
+      },
+      context.db,
+    );
+    markClientRegistrationRequestSent(
+      {
+        registrationId: registration.id,
+        actor: "Ерасыл",
+        occurredAt: new Date("2026-07-10T09:00:00.000Z"),
+      },
+      context.db,
+    );
+    recordClientRegistrationResponse(
+      {
+        registrationId: registration.id,
+        actor: "Ерасыл",
+        responseType: "confirmed",
+        supplierResponseText: "Закрепление подтверждено на согласованных условиях.",
+        confirmedCommissionPercent: 12.5,
+        confirmedRepeatCommissionMonths: 18,
+        occurredAt: new Date("2026-07-10T10:00:00.000Z"),
+      },
+      context.db,
+    );
+    introduceClientToSupplier(
+      {
+        registrationId: registration.id,
+        actor: "Ерасыл",
+        occurredAt: new Date("2026-07-10T11:00:00.000Z"),
+      },
+      context.db,
+    );
+
+    const registrationBeforeRepeatImport = context.db
+      .select()
+      .from(clientRegistrations)
+      .where(eq(clientRegistrations.id, registration.id))
+      .get()!;
+    const activityBeforeRepeatImport = context.db.select().from(activityLog).all();
+
     const supplierIdsBefore = context.db
       .select({ id: suppliers.id })
       .from(suppliers)
@@ -119,7 +179,33 @@ describe("real source workbook import", () => {
       internalComment: KDS_COMMENT,
       nextAction: KDS_NEXT_ACTION,
     });
-    expect(context.db.select().from(activityLog).all()).toHaveLength(3);
+    expect(context.db.select().from(activityLog).all()).toEqual(activityBeforeRepeatImport);
+    expect(activityBeforeRepeatImport).toHaveLength(7);
+    const registrationAfterRepeatImport = context.db
+      .select()
+      .from(clientRegistrations)
+      .where(eq(clientRegistrations.id, registration.id))
+      .get();
+    expect(registrationAfterRepeatImport).toEqual(registrationBeforeRepeatImport);
+    expect(registrationAfterRepeatImport).toMatchObject({
+      clientId: protectedClient.id,
+      supplierId: seededKds.id,
+      status: "стороны познакомлены",
+      responseType: "confirmed",
+      requestedCommissionPercent: 10,
+      confirmedCommissionPercent: 12.5,
+      requestedRepeatCommissionMonths: 12,
+      confirmedRepeatCommissionMonths: 18,
+      commissionPaymentBusinessDays: 5,
+      supplierResponseText: "Закрепление подтверждено на согласованных условиях.",
+      requestSentAt: new Date("2026-07-10T09:00:00.000Z"),
+      confirmedAt: new Date("2026-07-10T10:00:00.000Z"),
+      introducedAt: new Date("2026-07-10T11:00:00.000Z"),
+    });
+    expect(context.db.select().from(clients).where(eq(clients.id, protectedClient.id)).get()).toMatchObject({
+      bin: "123456789012",
+      problem: "Операторская потребность",
+    });
     expect(context.db.select().from(importRuns).all()).toHaveLength(2);
   });
 });

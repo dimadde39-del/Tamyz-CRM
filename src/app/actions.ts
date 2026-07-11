@@ -6,14 +6,23 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { db } from "@/db/client";
+import {
+  ClientRegistrationError,
+  createClientRegistration,
+  introduceClientToSupplier,
+  markClientRegistrationRequestSent,
+  recordClientRegistrationResponse,
+} from "@/db/client-registration-service";
 import { updateSupplierWithActivity } from "@/db/services";
 import { activityLog, clientBasketItems, clients } from "@/db/schema";
 import {
   CLIENT_STATUSES,
+  CLIENT_REGISTRATION_RESPONSE_TYPES,
   OWNERS,
   SUPPLIER_STATUSES,
   TRI_STATE_VALUES,
 } from "@/lib/domain";
+import { parsePercentToBps } from "@/lib/economics-engine";
 
 const emptyToNull = (value: FormDataEntryValue | null) => {
   if (typeof value !== "string") return null;
@@ -38,7 +47,23 @@ function redirectWithFlag(path: string, flag: "saved" | "sent" | "basket") {
   redirect(`${path}${separator}${flag}=1`);
 }
 
+function redirectWithRegistrationFlag(path: string, flag: string) {
+  redirect(`${path}?registration=${encodeURIComponent(flag)}`);
+}
+
 const supplierIdSchema = z.coerce.number().int().positive();
+
+const exactRegistrationPercentSchema = z.preprocess(
+  (value) => (value === null || value === undefined ? "" : String(value)),
+  z
+    .string()
+    .trim()
+    .regex(/^\d+(?:[.,]\d{1,2})?$/, "Процент допускает не более двух знаков после запятой")
+    .transform((value) => parsePercentToBps(value))
+    .refine((basisPoints) => basisPoints <= 10_000, "Процент должен быть от 0 до 100")
+    // Registration is a legacy REAL field; Economics snapshots convert it back to exact bps.
+    .transform((basisPoints) => basisPoints / 100),
+);
 
 export async function markSupplierSentAction(formData: FormData) {
   const supplierId = supplierIdSchema.parse(formData.get("supplierId"));
@@ -166,6 +191,7 @@ export async function saveClientAction(formData: FormData) {
   const nextContactAt = dateAtNoonUtc(emptyToNull(formData.get("nextContactAt")));
   const currentSupplier = emptyToNull(formData.get("currentSupplier"));
   const problem = emptyToNull(formData.get("problem"));
+  const bin = emptyToNull(formData.get("bin"));
 
   db.transaction((tx) => {
     tx.update(clients)
@@ -174,6 +200,7 @@ export async function saveClientAction(formData: FormData) {
         status: parsed.status,
         currentSupplier,
         problem,
+        bin,
         nextContactAt,
         updatedAt: now,
       })
@@ -199,6 +226,102 @@ export async function saveClientAction(formData: FormData) {
   revalidatePath(`/clients/${parsed.clientId}`);
   revalidatePath("/activities");
   redirectWithFlag(`/clients/${parsed.clientId}`, "saved");
+}
+
+const clientRegistrationCreateSchema = z.object({
+  clientId: z.coerce.number().int().positive(),
+  supplierId: z.coerce.number().int().positive(),
+  actor: z.enum(OWNERS),
+  requestedCommissionPercent: exactRegistrationPercentSchema,
+  requestedRepeatCommissionMonths: z.coerce.number().int().min(0).max(120),
+  commissionPaymentBusinessDays: z.coerce.number().int().min(1).max(365),
+});
+
+function revalidateClientRegistrationPaths(clientId: number) {
+  revalidatePath("/");
+  revalidatePath("/handoffs");
+  revalidatePath(`/clients/${clientId}`);
+  revalidatePath("/activities");
+}
+
+export async function createClientRegistrationAction(formData: FormData) {
+  const parsed = clientRegistrationCreateSchema.parse({
+    clientId: formData.get("clientId"),
+    supplierId: formData.get("supplierId"),
+    actor: formData.get("actor") ?? "Ерасыл",
+    requestedCommissionPercent: formData.get("requestedCommissionPercent"),
+    requestedRepeatCommissionMonths: formData.get("requestedRepeatCommissionMonths"),
+    commissionPaymentBusinessDays: formData.get("commissionPaymentBusinessDays"),
+  });
+  let flag = "created";
+  try {
+    createClientRegistration(parsed);
+    revalidateClientRegistrationPaths(parsed.clientId);
+  } catch (error) {
+    if (error instanceof ClientRegistrationError && error.code === "duplicate") {
+      flag = "duplicate";
+    } else {
+      throw error;
+    }
+  }
+  redirectWithRegistrationFlag(`/clients/${parsed.clientId}`, flag);
+}
+
+const registrationMutationSchema = z.object({
+  registrationId: z.coerce.number().int().positive(),
+  clientId: z.coerce.number().int().positive(),
+  actor: z.enum(OWNERS),
+});
+
+export async function markClientRegistrationRequestSentAction(formData: FormData) {
+  const parsed = registrationMutationSchema.parse({
+    registrationId: formData.get("registrationId"),
+    clientId: formData.get("clientId"),
+    actor: formData.get("actor") ?? "Ерасыл",
+  });
+  markClientRegistrationRequestSent(parsed);
+  revalidateClientRegistrationPaths(parsed.clientId);
+  redirectWithRegistrationFlag(`/clients/${parsed.clientId}`, "sent");
+}
+
+export async function recordClientRegistrationResponseAction(formData: FormData) {
+  const parsed = registrationMutationSchema.extend({
+    responseType: z.enum(CLIENT_REGISTRATION_RESPONSE_TYPES),
+    supplierResponseText: z.string().trim().min(1).max(10_000),
+  }).parse({
+    registrationId: formData.get("registrationId"),
+    clientId: formData.get("clientId"),
+    actor: formData.get("actor") ?? "Ерасыл",
+    responseType: formData.get("responseType"),
+    supplierResponseText: formData.get("supplierResponseText"),
+  });
+  const commissionValue = emptyToNull(formData.get("confirmedCommissionPercent"));
+  const monthsValue = emptyToNull(formData.get("confirmedRepeatCommissionMonths"));
+  const confirmedCommissionPercent = commissionValue === null
+    ? null
+    : exactRegistrationPercentSchema.parse(commissionValue);
+  const confirmedRepeatCommissionMonths = monthsValue === null
+    ? null
+    : z.coerce.number().int().min(0).max(120).parse(monthsValue);
+
+  recordClientRegistrationResponse({
+    ...parsed,
+    confirmedCommissionPercent,
+    confirmedRepeatCommissionMonths,
+  });
+  revalidateClientRegistrationPaths(parsed.clientId);
+  redirectWithRegistrationFlag(`/clients/${parsed.clientId}`, "response");
+}
+
+export async function introduceClientToSupplierAction(formData: FormData) {
+  const parsed = registrationMutationSchema.parse({
+    registrationId: formData.get("registrationId"),
+    clientId: formData.get("clientId"),
+    actor: formData.get("actor") ?? "Ерасыл",
+  });
+  introduceClientToSupplier(parsed);
+  revalidateClientRegistrationPaths(parsed.clientId);
+  redirectWithRegistrationFlag(`/clients/${parsed.clientId}`, "introduced");
 }
 
 const basketSchema = z.object({

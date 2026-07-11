@@ -36,6 +36,101 @@ export const CLIENT_STATUSES = [
 
 export type ClientStatus = (typeof CLIENT_STATUSES)[number];
 
+export const CLIENT_REGISTRATION_STATUSES = [
+  "черновик",
+  "ожидает подтверждения",
+  "подтверждён",
+  "уже является клиентом поставщика",
+  "условия отклонены",
+  "стороны познакомлены",
+] as const;
+
+export type ClientRegistrationStatus = (typeof CLIENT_REGISTRATION_STATUSES)[number];
+
+export const CLIENT_REGISTRATION_RESPONSE_TYPES = [
+  "confirmed",
+  "already_client",
+  "counteroffer",
+  "refused",
+] as const;
+
+export type ClientRegistrationResponseType =
+  (typeof CLIENT_REGISTRATION_RESPONSE_TYPES)[number];
+
+export const CLIENT_REGISTRATION_RESPONSE_LABELS: Record<
+  ClientRegistrationResponseType,
+  string
+> = {
+  confirmed: "подтвердил",
+  already_client: "сообщил, что клиент уже его",
+  counteroffer: "предложил другие условия",
+  refused: "отказался",
+};
+
+export interface ClientRegistrationMessageInput {
+  clientName: string;
+  clientBin?: string | null;
+  requestedCommissionPercent: number;
+  requestedRepeatCommissionMonths: number;
+  commissionPaymentBusinessDays: number;
+}
+
+/** The protection request deliberately contains no client contacts or basket details. */
+export function buildClientRegistrationRequestMessage(
+  input: ClientRegistrationMessageInput,
+): string {
+  const clientLabel = input.clientBin
+    ? `${input.clientName}, БИН ${input.clientBin}`
+    : input.clientName;
+
+  return `Перед передачей контакта клиента ${clientLabel} подтвердите, пожалуйста:\n` +
+    "— клиент ранее не обслуживался вашей компанией;\n" +
+    "— клиент закрепляется за TAMYZ;\n" +
+    `— комиссия составляет ${input.requestedCommissionPercent}% с оплаченных заказов;\n` +
+    `— комиссия действует на повторные заказы в течение ${input.requestedRepeatCommissionMonths} месяцев;\n` +
+    `— выплата производится в течение ${input.commissionPaymentBusinessDays} рабочих дней после оплаты клиентом.\n` +
+    "После подтверждения передадим контакт и потребность клиента";
+}
+
+export interface ClientIntroductionMessageInput {
+  clientName: string;
+  clientContactPerson?: string | null;
+  clientPhone?: string | null;
+  clientWhatsApp?: string | null;
+  supplierName: string;
+  supplierPhone?: string | null;
+  supplierWhatsApp?: string | null;
+  basket: Array<{ product: string; brand?: string | null; packaging?: string | null }>;
+}
+
+export function buildClientIntroductionMessage(
+  input: ClientIntroductionMessageInput,
+): string {
+  const clientContacts = [
+    input.clientContactPerson ? `контакт: ${input.clientContactPerson}` : null,
+    input.clientPhone ? `телефон: ${input.clientPhone}` : null,
+    input.clientWhatsApp ? `WhatsApp: ${input.clientWhatsApp}` : null,
+  ].filter(Boolean);
+  const supplierContacts = [
+    input.supplierPhone ? `телефон: ${input.supplierPhone}` : null,
+    input.supplierWhatsApp ? `WhatsApp: ${input.supplierWhatsApp}` : null,
+  ].filter(Boolean);
+  const basket = input.basket.length
+    ? input.basket
+        .map(
+          (item) =>
+            `— ${[item.product, item.brand, item.packaging].filter(Boolean).join(", ")}`,
+        )
+        .join("\n")
+    : "— потребность уточняется в прямом разговоре";
+
+  return `Коллеги, знакомлю стороны.\n\n` +
+    `Клиент: ${input.clientName}${clientContacts.length ? ` (${clientContacts.join(", ")})` : ""}.\n` +
+    `Поставщик: ${input.supplierName}${supplierContacts.length ? ` (${supplierContacts.join(", ")})` : ""}.\n\n` +
+    `Потребность клиента:\n${basket}\n\n` +
+    "Поставщик письменно подтвердил закрепление клиента за TAMYZ и условия комиссии. Пожалуйста, продолжите обсуждение напрямую.";
+}
+
 export const PRIORITIES = ["высокий", "средний", "низкий"] as const;
 
 export type Priority = (typeof PRIORITIES)[number];
@@ -161,6 +256,12 @@ export const ACTIVITY_TYPES = [
   "status_changed",
   "follow_up_created",
   "details_updated",
+  "client_registration_created",
+  "client_registration_requested",
+  "client_registration_response_recorded",
+  "client_introduction_recorded",
+  "economics_scenario_created",
+  "economics_scenario_updated",
 ] as const;
 
 export type ActivityType = (typeof ACTIVITY_TYPES)[number];

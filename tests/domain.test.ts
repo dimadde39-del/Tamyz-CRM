@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   FIRST_SUPPLIER_MESSAGE,
   buildWhatsAppUrl,
+  buildClientRegistrationRequestMessage,
   getQualificationResult,
   normalizeWhatsAppNumber,
   type QualificationInput,
@@ -104,5 +105,30 @@ describe("WhatsApp links", () => {
   it("does not create a WhatsApp link when no WhatsApp contact is available", () => {
     expect(buildWhatsAppUrl("не найдено")).toBeNull();
     expect(buildWhatsAppUrl(null)).toBeNull();
+  });
+});
+
+describe("шаблон запроса защиты клиента", () => {
+  it("подставляет только название, БИН и условия без защищённых данных", () => {
+    const message = buildClientRegistrationRequestMessage({
+      clientName: "ТОО Чистый клиент",
+      clientBin: "123456789012",
+      requestedCommissionPercent: 12.5,
+      requestedRepeatCommissionMonths: 18,
+      commissionPaymentBusinessDays: 5,
+    });
+
+    expect(message).toBe(
+      "Перед передачей контакта клиента ТОО Чистый клиент, БИН 123456789012 подтвердите, пожалуйста:\n" +
+      "— клиент ранее не обслуживался вашей компанией;\n" +
+      "— клиент закрепляется за TAMYZ;\n" +
+      "— комиссия составляет 12.5% с оплаченных заказов;\n" +
+      "— комиссия действует на повторные заказы в течение 18 месяцев;\n" +
+      "— выплата производится в течение 5 рабочих дней после оплаты клиентом.\n" +
+      "После подтверждения передадим контакт и потребность клиента",
+    );
+    expect(message).not.toContain("+7 701");
+    expect(message).not.toContain("контактное лицо");
+    expect(message).not.toContain("корзина");
   });
 });

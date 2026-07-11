@@ -24,18 +24,25 @@ async function main(): Promise<void> {
   }
 
   process.env.DATABASE_URL = target;
-  const [{ db, sqlite }, { migrate }, { seedKdsOperationalRecord }, { importSourceWorkbook }] =
-    await Promise.all([
-      import("../src/db/client"),
-      import("drizzle-orm/better-sqlite3/migrator"),
-      import("../src/db/services"),
-      import("../src/lib/import/workbook"),
-    ]);
+  const [
+    { db, sqlite },
+    { migrate },
+    { seedKdsOperationalRecord },
+    { importSourceWorkbook },
+    { applyJuly10FieldUpdate },
+  ] = await Promise.all([
+    import("../src/db/client"),
+    import("drizzle-orm/better-sqlite3/migrator"),
+    import("../src/db/services"),
+    import("../src/lib/import/workbook"),
+    import("../src/db/field-update"),
+  ]);
 
   try {
     migrate(db, { migrationsFolder: path.resolve(workspace, "drizzle") });
     const report = await importSourceWorkbook();
     seedKdsOperationalRecord();
+    applyJuly10FieldUpdate(db);
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
   } finally {
     sqlite.close();

@@ -15,6 +15,20 @@
       "when": 1783709453911,
       "tag": "0001_flowery_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783712106149,
+      "tag": "0002_slim_lady_bullseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783713269089,
+      "tag": "0003_fluffy_dragon_man",
+      "breakpoints": true
     }
   ]
 }

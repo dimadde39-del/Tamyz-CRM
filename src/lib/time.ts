@@ -34,3 +34,13 @@ export function addHours(value: string | Date, hours: number) {
   const date = value instanceof Date ? value : new Date(value);
   return new Date(date.getTime() + hours * 60 * 60 * 1000);
 }
+
+export function isOlderThanHours(
+  value: string | Date | null | undefined,
+  hours: number,
+  now: Date = new Date(),
+) {
+  if (!value) return false;
+  const date = value instanceof Date ? value : new Date(value);
+  return !Number.isNaN(date.getTime()) && date.getTime() < now.getTime() - hours * 60 * 60 * 1000;
+}

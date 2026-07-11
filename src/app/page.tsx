@@ -15,11 +15,11 @@ import Link from "next/link";
 import { Badge, MetricCard, PageHeader, Panel } from "@/components/ui";
 import { PriorityBadge, StatusBadge } from "@/components/status-badge";
 import { db } from "@/db/client";
-import { listActivities, listSuppliers } from "@/db/queries";
+import { listActivities, listClientRegistrations, listSuppliers } from "@/db/queries";
 import { clientBasketItems, testBaskets } from "@/db/schema";
 import { calculateDashboard } from "@/lib/dashboard";
 import { compactText, formatDate } from "@/lib/format";
-import { formatBusinessDateTime } from "@/lib/time";
+import { formatBusinessDateTime, isOlderThanHours } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Сегодня" };
 export const dynamic = "force-dynamic";
@@ -40,6 +40,16 @@ export default function TodayPage() {
   const activities = listActivities(5000);
   const basketItems = db.select().from(clientBasketItems).all();
   const testBasketCount = db.select({ id: testBaskets.id }).from(testBaskets).all().length;
+  const registrations = listClientRegistrations();
+  const pendingRegistrations = registrations.filter(
+    ({ registration }) => registration.status === "ожидает подтверждения",
+  );
+  const confirmedRegistrations = registrations.filter(
+    ({ registration }) => registration.status === "подтверждён",
+  );
+  const overdueRegistrations = pendingRegistrations.filter(
+    ({ registration }) => isOlderThanHours(registration.requestSentAt, 24),
+  );
   const basketClients = new Set(basketItems.map((item) => item.clientId));
   const demandGroups = new Map<string, Set<number>>();
   basketItems.forEach((item) => {
@@ -75,6 +85,27 @@ export default function TodayPage() {
         <MetricCard label="Регион закрыт" value={dashboard.regionsClosed} detail="есть представитель" tone="danger" icon={AlertTriangle} />
         <MetricCard label="Написать сегодня" value={dashboard.needsWriteToday.length} detail="высокий приоритет" tone="warning" icon={Send} />
         <MetricCard label="Follow-up" value={dashboard.needsFollowUp.length} detail="срок сегодня или прошёл" tone="warning" icon={Clock3} />
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-3">
+        <Panel title={`Ожидают ответа · ${pendingRegistrations.length}`} actions={<Link className="text-[12px] font-semibold underline" href="/handoffs?status=ожидает+подтверждения">Все</Link>}>
+          <div className="divide-y divide-[var(--line)]">
+            {pendingRegistrations.slice(0, 6).map(({ registration, clientName, supplierName }) => <div className="px-4 py-3 text-[12px]" key={registration.id}><Link className="font-semibold underline decoration-black/20 underline-offset-2" href={`/clients/${registration.clientId}`}>{clientName}</Link><p className="mt-1 text-[var(--muted)]">{supplierName} · с {formatBusinessDateTime(registration.requestSentAt)}</p></div>)}
+            {pendingRegistrations.length === 0 ? <p className="p-4 text-[12px] text-[var(--muted)]">Запросов в ожидании нет.</p> : null}
+          </div>
+        </Panel>
+        <Panel title={`Подтверждены, не переданы · ${confirmedRegistrations.length}`} actions={<Link className="text-[12px] font-semibold underline" href="/handoffs?status=подтверждён">Все</Link>}>
+          <div className="divide-y divide-[var(--line)]">
+            {confirmedRegistrations.slice(0, 6).map(({ registration, clientName, supplierName }) => <div className="px-4 py-3 text-[12px]" key={registration.id}><Link className="font-semibold underline decoration-black/20 underline-offset-2" href={`/clients/${registration.clientId}`}>{clientName}</Link><p className="mt-1 text-[var(--muted)]">{supplierName} · подтверждено {formatBusinessDateTime(registration.confirmedAt)}</p></div>)}
+            {confirmedRegistrations.length === 0 ? <p className="p-4 text-[12px] text-[var(--muted)]">Непереданных подтверждённых клиентов нет.</p> : null}
+          </div>
+        </Panel>
+        <Panel title={`Без ответа более 24 часов · ${overdueRegistrations.length}`} actions={<Link className="text-[12px] font-semibold underline" href="/handoffs?status=ожидает+подтверждения">Проверить</Link>}>
+          <div className="divide-y divide-[var(--line)]">
+            {overdueRegistrations.slice(0, 6).map(({ registration, clientName, supplierName }) => <div className="bg-[var(--warning-soft)]/40 px-4 py-3 text-[12px]" key={registration.id}><Link className="font-semibold underline decoration-black/20 underline-offset-2" href={`/clients/${registration.clientId}`}>{clientName}</Link><p className="mt-1 text-[#795711]">{supplierName} · запрос {formatBusinessDateTime(registration.requestSentAt)}</p></div>)}
+            {overdueRegistrations.length === 0 ? <p className="p-4 text-[12px] text-[var(--muted)]">Просроченных ответов нет.</p> : null}
+          </div>
+        </Panel>
       </div>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">

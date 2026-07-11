@@ -12,6 +12,14 @@ const statusTone = {
   отказ: "danger",
   "follow-up": "info",
   закрыт: "danger",
+  черновик: "neutral",
+  "ожидает подтверждения": "warning",
+  подтверждён: "success",
+  "уже является клиентом поставщика": "danger",
+  "условия отклонены": "danger",
+  "стороны познакомлены": "success",
+  "черновик условий": "warning",
+  "условия подтверждены": "success",
 } as const;
 
 type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";

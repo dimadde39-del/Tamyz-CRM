@@ -1,15 +1,17 @@
 import { asc, eq } from "drizzle-orm";
-import { ArrowLeft, ExternalLink, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Calculator, ExternalLink, MessageCircle, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { addBasketItemAction, saveClientAction } from "@/app/actions";
 import { SubmitButton } from "@/components/submit-button";
+import { ClientRegistrationPanel } from "@/components/client-registration-panel";
 import { PriorityBadge, StatusBadge, TriStateBadge } from "@/components/status-badge";
 import { PageHeader, Panel } from "@/components/ui";
 import { db } from "@/db/client";
-import { clientBasketItems, clients } from "@/db/schema";
+import { listClientRegistrations } from "@/db/queries";
+import { clientBasketItems, clients, suppliers } from "@/db/schema";
 import { CLIENT_STATUSES, OWNERS, TRI_STATE_VALUES, buildWhatsAppUrl } from "@/lib/domain";
 import { firstListedValue, formatDateInput } from "@/lib/format";
 
@@ -34,6 +36,12 @@ export default async function ClientPage({
   const client = db.select().from(clients).where(eq(clients.id, Number(id))).get();
   if (!client) notFound();
   const basket = db.select().from(clientBasketItems).where(eq(clientBasketItems.clientId, client.id)).orderBy(asc(clientBasketItems.id)).all();
+  const registrations = listClientRegistrations({ clientId: client.id });
+  const supplierOptions = db
+    .select({ id: suppliers.id, name: suppliers.name })
+    .from(suppliers)
+    .orderBy(asc(suppliers.name))
+    .all();
   const whatsappUrl = buildWhatsAppUrl(client.whatsapp, client.bestFirstQuestion ?? "Здравствуйте. Можно задать несколько коротких вопросов о вашей текущей корзине профессиональной химии?");
 
   return (
@@ -45,6 +53,11 @@ export default async function ClientPage({
         actions={<Link className="btn" href="/clients"><ArrowLeft aria-hidden="true" size={15} /> К списку</Link>}
       />
       {flash.saved || flash.basket ? <div className="mb-4 rounded border border-[#b8d1c2] bg-[var(--accent-soft)] px-4 py-3 text-[13px] font-medium text-[#1e5b43]" role="status">{flash.basket ? "Позиция добавлена в корзину и записана в журнал." : "Карточка клиента обновлена."}</div> : null}
+      {flash.registration ? (
+        <div className={`mb-4 rounded border px-4 py-3 text-[13px] font-medium ${flash.registration === "duplicate" ? "border-[#e2cc98] bg-[var(--warning-soft)] text-[#795711]" : "border-[#b8d1c2] bg-[var(--accent-soft)] text-[#1e5b43]"}`} role="status">
+          {flash.registration === "created" ? "Регистрация создана и записана в журнал." : flash.registration === "sent" ? "Запрос отмечен отправленным; ожидаем письменный ответ." : flash.registration === "response" ? "Ответ и условия поставщика зафиксированы." : flash.registration === "introduced" ? "Знакомство сторон отмечено в журнале." : "Для этой пары клиент + поставщик регистрация уже существует."}
+        </div>
+      ) : null}
 
       <div className="mb-4 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <Panel title="Контакт">
@@ -67,13 +80,38 @@ export default async function ClientPage({
             <label><span className="label">Статус</span><select className="field" name="status" defaultValue={client.status}>{CLIENT_STATUSES.map((status) => <option value={status} key={status}>{status}</option>)}</select></label>
             <label><span className="label">Дата следующего контакта</span><input className="field" type="date" name="nextContactAt" defaultValue={formatDateInput(client.nextContactAt)} /></label>
             <label><span className="label">Текущий поставщик</span><input className="field" name="currentSupplier" defaultValue={client.currentSupplier ?? ""} /></label>
+            <label><span className="label">БИН</span><input className="field" name="bin" inputMode="numeric" defaultValue={client.bin ?? ""} placeholder="12 цифр, если известен" /></label>
             <label><span className="label">Проблема / что не устраивает</span><input className="field" name="problem" defaultValue={client.problem ?? ""} /></label>
             <div className="flex justify-end sm:col-span-2"><SubmitButton>Сохранить клиента</SubmitButton></div>
           </form>
         </Panel>
       </div>
 
-      <Panel title={`Корзина клиента · ${basket.length}`} description="Заполняется только после реального разговора; исходные предположения сюда не переносятся.">
+      <ClientRegistrationPanel
+        client={{ id: client.id, name: client.name, bin: client.bin, owner: client.owner }}
+        suppliers={supplierOptions}
+        registrations={registrations}
+        basket={basket}
+      />
+
+      <Panel
+        title={`Корзина клиента · ${basket.length}`}
+        description="Заполняется только после реального разговора; исходные предположения сюда не переносятся."
+        actions={basket.length > 0 ? (
+          <Link className="btn" href={`/economics?clientId=${client.id}`}>
+            <Calculator aria-hidden="true" size={15} /> Рассчитать экономику
+          </Link>
+        ) : (
+          <span
+            className="btn"
+            aria-disabled="true"
+            role="link"
+            title="Сначала добавьте хотя бы одну позицию в корзину клиента"
+          >
+            <Calculator aria-hidden="true" size={15} /> Рассчитать экономику
+          </span>
+        )}
+      >
         <div className="scrollbar-thin overflow-x-auto">
           <table className="data-table min-w-[980px]">
             <thead><tr><th>Товар</th><th>Бренд / SKU</th><th>Фасовка</th><th>Канистр</th><th>Л/месяц</th><th>Частота</th><th>Текущая цена</th><th>Доставка</th><th>Готов тестировать</th></tr></thead>

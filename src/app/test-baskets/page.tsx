@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import { ArrowRight, CircleHelp, TriangleAlert } from "lucide-react";
+import { ArrowRight, Calculator, CircleHelp, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -72,7 +72,18 @@ export default function TestBasketsPage() {
               key={basket.id}
               title={basket.name}
               description={`Поставщик: ${supplierName} · ответственный: ${basket.owner}`}
-              actions={<Badge tone="warning">Комиссия: не выяснена</Badge>}
+              actions={(
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Badge tone="warning">Комиссия: не выяснена</Badge>
+                  <Link
+                    className="btn min-h-8"
+                    href={`/economics?testBasketId=${basket.id}`}
+                    title="Предварительный расчёт по тестовым, не подтверждённым условиям"
+                  >
+                    <Calculator aria-hidden="true" size={14} /> Предварительный расчёт
+                  </Link>
+                </div>
+              )}
             >
               <div className="p-4">
                 <dl className="grid grid-cols-3 gap-2 text-[12px]">

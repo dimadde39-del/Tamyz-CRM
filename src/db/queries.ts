@@ -1,8 +1,23 @@
 import { desc, eq } from "drizzle-orm";
 
-import { buildWhatsAppUrl, getQualificationResult, type Owner, type Priority, type SupplierStatus } from "../lib/domain";
+import {
+  buildWhatsAppUrl,
+  getQualificationResult,
+  type ClientRegistrationStatus,
+  type Owner,
+  type Priority,
+  type SupplierStatus,
+} from "../lib/domain";
 import { db, type TamyzDatabase } from "./client";
-import { activityLog, clients, importRuns, suppliers, type Client, type Supplier } from "./schema";
+import {
+  activityLog,
+  clientRegistrations,
+  clients,
+  importRuns,
+  suppliers,
+  type Client,
+  type Supplier,
+} from "./schema";
 
 export interface SupplierFilters {
   search?: string;
@@ -106,4 +121,39 @@ export function listActivities(limit = 200, database: TamyzDatabase = db) {
 
 export function getLatestImportRun(database: TamyzDatabase = db) {
   return database.select().from(importRuns).orderBy(desc(importRuns.startedAt)).limit(1).get() ?? null;
+}
+
+export interface ClientRegistrationFilters {
+  clientId?: number;
+  supplierId?: number;
+  status?: ClientRegistrationStatus;
+}
+
+export function listClientRegistrations(
+  filters: ClientRegistrationFilters = {},
+  database: TamyzDatabase = db,
+) {
+  return database
+    .select({
+      registration: clientRegistrations,
+      clientName: clients.name,
+      clientBin: clients.bin,
+      clientPhone: clients.phone,
+      clientWhatsApp: clients.whatsapp,
+      clientContactPerson: clients.sourceDecisionMaker,
+      supplierName: suppliers.name,
+      supplierPhone: suppliers.phone,
+      supplierWhatsApp: suppliers.whatsapp,
+    })
+    .from(clientRegistrations)
+    .innerJoin(clients, eq(clientRegistrations.clientId, clients.id))
+    .innerJoin(suppliers, eq(clientRegistrations.supplierId, suppliers.id))
+    .orderBy(desc(clientRegistrations.createdAt))
+    .all()
+    .filter((item) => {
+      if (filters.clientId && item.registration.clientId !== filters.clientId) return false;
+      if (filters.supplierId && item.registration.supplierId !== filters.supplierId) return false;
+      if (filters.status && item.registration.status !== filters.status) return false;
+      return true;
+    });
 }
