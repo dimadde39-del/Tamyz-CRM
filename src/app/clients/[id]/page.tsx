@@ -1,5 +1,5 @@
 import { asc, eq } from "drizzle-orm";
-import { ArrowLeft, Calculator, ExternalLink, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Calculator, ExternalLink, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,10 +9,11 @@ import { SubmitButton } from "@/components/submit-button";
 import { ClientRegistrationPanel } from "@/components/client-registration-panel";
 import { PriorityBadge, StatusBadge, TriStateBadge } from "@/components/status-badge";
 import { PageHeader, Panel } from "@/components/ui";
+import { WhatsAppLinks } from "@/components/whatsapp-links";
 import { db } from "@/db/client";
 import { listClientRegistrations } from "@/db/queries";
 import { clientBasketItems, clients, suppliers } from "@/db/schema";
-import { CLIENT_STATUSES, OWNERS, TRI_STATE_VALUES, buildWhatsAppUrl } from "@/lib/domain";
+import { CLIENT_STATUSES, OWNERS, TRI_STATE_VALUES } from "@/lib/domain";
 import { firstListedValue, formatDateInput } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -42,8 +43,6 @@ export default async function ClientPage({
     .from(suppliers)
     .orderBy(asc(suppliers.name))
     .all();
-  const whatsappUrl = buildWhatsAppUrl(client.whatsapp, client.bestFirstQuestion ?? "Здравствуйте. Можно задать несколько коротких вопросов о вашей текущей корзине профессиональной химии?");
-
   return (
     <>
       <PageHeader
@@ -63,9 +62,9 @@ export default async function ClientPage({
         <Panel title="Контакт">
           <div className="space-y-4 p-4 text-[12px]">
             <div className="flex flex-wrap gap-2"><PriorityBadge priority={client.priority} /><StatusBadge status={client.status} /></div>
-            <dl className="grid grid-cols-2 gap-3"><div><dt className="label">WhatsApp</dt><dd>{client.whatsapp || "не найден"}</dd></div><div><dt className="label">Телефон</dt><dd>{client.phone || "не найден"}</dd></div><div><dt className="label">Instagram</dt><dd className="break-all">{client.instagram || "не найден"}</dd></div><div><dt className="label">Ответственный</dt><dd>{client.owner}</dd></div></dl>
+            <dl className="grid grid-cols-2 gap-3"><div><dt className="label">WhatsApp</dt><dd>{firstListedValue(client.whatsapp) ?? firstListedValue(client.phone) ?? "не найден"}</dd></div><div><dt className="label">Телефон</dt><dd>{client.phone || "не найден"}</dd></div><div><dt className="label">Instagram</dt><dd className="break-all">{client.instagram || "не найден"}</dd></div><div><dt className="label">Ответственный</dt><dd>{client.owner}</dd></div></dl>
             <div className="flex flex-wrap gap-2">
-              {whatsappUrl ? <a className="btn" href={whatsappUrl} target="_blank" rel="noreferrer"><MessageCircle aria-hidden="true" size={15} /> Открыть WhatsApp вручную</a> : null}
+              <WhatsAppLinks phone={client.phone} whatsapp={client.whatsapp} label="Открыть WhatsApp вручную" />
               {firstListedValue(client.phone) ? <a className="btn" href={`tel:${firstListedValue(client.phone)}`}><Phone aria-hidden="true" size={15} /> Позвонить</a> : null}
               <a className="btn" href={client.twoGisUrl} target="_blank" rel="noreferrer"><ExternalLink aria-hidden="true" size={15} /> 2GIS</a>
             </div>

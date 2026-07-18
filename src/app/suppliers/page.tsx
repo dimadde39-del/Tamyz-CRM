@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Pagination } from "@/components/pagination";
 import { SupplierFilters } from "@/components/supplier-filters";
 import { PageHeader, Panel } from "@/components/ui";
+import { WhatsAppLinks } from "@/components/whatsapp-links";
 import { PriorityBadge, QualificationBadge, StatusBadge } from "@/components/status-badge";
 import { listSuppliers } from "@/db/queries";
 import { OWNERS, PRIORITIES, SUPPLIER_STATUSES, type QualificationResult } from "@/lib/domain";
@@ -70,8 +71,9 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{compactText(supplier.category, 80)}</p>
                   </td>
                   <td className="max-w-[200px]">
-                    <p className="font-medium">{firstListedValue(supplier.whatsapp) ?? "WhatsApp не найден"}</p>
+                    <p className="font-medium">{firstListedValue(supplier.whatsapp) ?? firstListedValue(supplier.phone) ?? "WhatsApp не найден"}</p>
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{compactText(firstListedValue(supplier.phone), 26)}</p>
+                    <div className="mt-2 flex flex-wrap gap-1"><WhatsAppLinks phone={supplier.phone} whatsapp={supplier.whatsapp} className="btn min-h-8" /></div>
                   </td>
                   <td><PriorityBadge priority={supplier.priority} /><p className="mt-1 text-[11px] text-[var(--muted)]">confidence {supplier.confidenceScore ?? "—"}</p></td>
                   <td>{supplier.owner}</td>

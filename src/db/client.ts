@@ -1,4 +1,5 @@
-import { mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import Sqlite from "better-sqlite3";
@@ -15,8 +16,22 @@ export interface DatabaseContext {
   path: string;
 }
 
+const LOCAL_DATABASE_URL = "./data/tamyz-ops.db";
+
+function isVercelEphemeralSqlite(databaseUrl?: string): boolean {
+  return databaseUrl === undefined && Boolean(process.env.VERCEL_REGION) && !process.env.DATABASE_URL;
+}
+
+function defaultDatabaseUrl(): string {
+  if (isVercelEphemeralSqlite()) {
+    return process.env.VERCEL_SQLITE_PATH ?? path.join(tmpdir(), "tamyz-ops.db");
+  }
+
+  return process.env.DATABASE_URL ?? LOCAL_DATABASE_URL;
+}
+
 export function getDatabasePath(
-  databaseUrl = process.env.DATABASE_URL ?? "./data/tamyz-ops.db",
+  databaseUrl = defaultDatabaseUrl(),
 ): string {
   const withoutProtocol = databaseUrl.startsWith("file:")
     ? databaseUrl.slice("file:".length)
@@ -31,10 +46,29 @@ export function getDatabasePath(
     : path.resolve(/* turbopackIgnore: true */ process.cwd(), withoutProtocol);
 }
 
+function seedVercelRuntimeDatabase(databasePath: string): void {
+  const seedPath = process.env.VERCEL_SQLITE_SEED_PATH ?? "/var/task/data/tamyz-ops.db";
+  if (!existsSync(/* turbopackIgnore: true */ seedPath)) {
+    throw new Error(
+      `Не найдена seed SQLite БД для Vercel: ${seedPath}. Проверьте outputFileTracingIncludes.`,
+    );
+  }
+
+  mkdirSync(/* turbopackIgnore: true */ path.dirname(databasePath), { recursive: true });
+  if (!existsSync(/* turbopackIgnore: true */ databasePath)) {
+    copyFileSync(
+      /* turbopackIgnore: true */ seedPath,
+      /* turbopackIgnore: true */ databasePath,
+    );
+  }
+}
+
 export function createDatabase(databaseUrl?: string): DatabaseContext {
   const databasePath = getDatabasePath(databaseUrl);
 
-  if (databasePath !== ":memory:") {
+  if (isVercelEphemeralSqlite(databaseUrl)) {
+    seedVercelRuntimeDatabase(databasePath);
+  } else if (databasePath !== ":memory:") {
     mkdirSync(/* turbopackIgnore: true */ path.dirname(databasePath), { recursive: true });
   }
 

@@ -31,6 +31,11 @@ function objectCellValue(value: object): unknown {
   return value.toString();
 }
 
+function plainNumberText(value: number): string {
+  if (Number.isSafeInteger(value)) return value.toFixed(0);
+  return String(value);
+}
+
 /** Converts an Excel cell value to trimmed source text without losing semicolon lists. */
 export function normalizeSourceValue(value: unknown): string | null {
   if (value === null || value === undefined) {
@@ -44,7 +49,9 @@ export function normalizeSourceValue(value: unknown): string | null {
     normalized = objectCellValue(value);
   }
 
-  const text = String(normalized).replace(/\r\n/g, "\n").trim();
+  const text = (typeof normalized === "number" ? plainNumberText(normalized) : String(normalized))
+    .replace(/\r\n/g, "\n")
+    .trim();
   return NULL_SOURCE_VALUES.has(text.toLocaleLowerCase("ru")) ? null : text;
 }
 

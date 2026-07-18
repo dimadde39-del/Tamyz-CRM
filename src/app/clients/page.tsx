@@ -5,6 +5,7 @@ import { ClientFilters } from "@/components/client-filters";
 import { Pagination } from "@/components/pagination";
 import { PriorityBadge, StatusBadge } from "@/components/status-badge";
 import { PageHeader, Panel } from "@/components/ui";
+import { WhatsAppLinks } from "@/components/whatsapp-links";
 import { listClients } from "@/db/queries";
 import { OWNERS, PRIORITIES } from "@/lib/domain";
 import { compactText, firstListedValue, formatDate, stringParam } from "@/lib/format";
@@ -46,7 +47,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
                 <tr key={client.id}>
                   <td className="max-w-[270px]"><Link className="font-[700] text-[var(--ink)] underline decoration-black/20 underline-offset-2" href={`/clients/${client.id}`}>{client.name}</Link><p className="mt-1 text-[11px] text-[var(--muted)]">#{client.rank} · {compactText(client.address, 75)}</p></td>
                   <td className="max-w-[190px]">{client.category || "—"}</td>
-                  <td><p>{firstListedValue(client.whatsapp) ?? "WhatsApp не найден"}</p><p className="mt-1 text-[11px] text-[var(--muted)]">{firstListedValue(client.phone) ?? "—"}</p></td>
+                  <td><p>{firstListedValue(client.whatsapp) ?? firstListedValue(client.phone) ?? "WhatsApp не найден"}</p><p className="mt-1 text-[11px] text-[var(--muted)]">{firstListedValue(client.phone) ?? "—"}</p><div className="mt-2 flex flex-wrap gap-1"><WhatsAppLinks phone={client.phone} whatsapp={client.whatsapp} className="btn min-h-8" /></div></td>
                   <td><PriorityBadge priority={client.priority} /><p className="mt-1 text-[11px] text-[var(--muted)]">confidence {client.confidenceScore ?? "—"}</p></td>
                   <td>{client.owner}</td>
                   <td><StatusBadge status={client.status} /></td>

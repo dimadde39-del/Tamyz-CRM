@@ -2,12 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   FIRST_SUPPLIER_MESSAGE,
-  buildWhatsAppUrl,
   buildClientRegistrationRequestMessage,
   getQualificationResult,
-  normalizeWhatsAppNumber,
   type QualificationInput,
 } from "@/lib/domain";
+import { buildWhatsAppUrl, normalizePhoneNumber } from "@/lib/phone";
 
 const EXACT_FIRST_SUPPLIER_MESSAGE =
   "Здравствуйте. Шымкент у вас уже закрыт действующим B2B-партнёром или регион свободен?\n\n" +
@@ -83,12 +82,12 @@ describe("WhatsApp links", () => {
   });
 
   it("builds the exact manual wa.me URL with the first usable number", () => {
-    const expected = `https://wa.me/77778689009?text=${encodeURIComponent(EXACT_FIRST_SUPPLIER_MESSAGE)}`;
+    const expected = "https://wa.me/77778689009";
     const url = buildWhatsAppUrl("+7 (777) 868-90-09; +7 705 342-08-11");
 
     expect(url).toBe(expected);
     expect(new URL(url!).pathname).toBe("/77778689009");
-    expect(new URL(url!).searchParams.get("text")).toBe(EXACT_FIRST_SUPPLIER_MESSAGE);
+    expect(new URL(url!).search).toBe("");
   });
 
   it.each([
@@ -99,7 +98,7 @@ describe("WhatsApp links", () => {
     ["00000000000", null],
     [null, null],
   ])("normalizes %j to %j", (input, expected) => {
-    expect(normalizeWhatsAppNumber(input)).toBe(expected);
+    expect(normalizePhoneNumber(input)).toBe(expected);
   });
 
   it("does not create a WhatsApp link when no WhatsApp contact is available", () => {

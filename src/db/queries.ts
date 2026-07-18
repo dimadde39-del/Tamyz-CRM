@@ -1,7 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 
 import {
-  buildWhatsAppUrl,
   getQualificationResult,
   type ClientRegistrationStatus,
   type Owner,
@@ -28,14 +27,12 @@ export interface SupplierFilters {
 
 export type SupplierListItem = Supplier & {
   qualificationResult: ReturnType<typeof getQualificationResult>;
-  whatsappUrl: string | null;
 };
 
 function decorateSupplier(supplier: Supplier): SupplierListItem {
   return {
     ...supplier,
     qualificationResult: getQualificationResult(supplier),
-    whatsappUrl: buildWhatsAppUrl(supplier.whatsapp),
   };
 }
 

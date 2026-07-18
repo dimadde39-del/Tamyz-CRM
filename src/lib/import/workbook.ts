@@ -16,7 +16,7 @@ import {
   type NewSupplier,
   type Supplier,
 } from "../../db/schema";
-import { normalizeWhatsAppNumber } from "../domain";
+import { normalizePhoneNumber } from "../phone";
 import {
   extractTwoGisFirmId,
   normalizeContactValue,
@@ -81,6 +81,7 @@ function requiredInteger(value: unknown, label: string): number {
 
 function supplierFromRow(row: SourceRow): NewSupplier {
   const whatsapp = normalizeContactValue(row.whatsapp);
+  const phone = normalizeContactValue(row["телефон"]);
   return {
     externalKey: requireSourceValue(row.duplicate_group, "duplicate_group"),
     rank: requiredInteger(row.rank, "rank"),
@@ -95,8 +96,8 @@ function supplierFromRow(row: SourceRow): NewSupplier {
     city: normalizeSourceValue(row["город"]),
     website: normalizeSourceValue(row["сайт"]),
     whatsapp,
-    whatsappNormalized: normalizeWhatsAppNumber(whatsapp),
-    phone: normalizeContactValue(row["телефон"]),
+    whatsappNormalized: normalizePhoneNumber(whatsapp),
+    phone,
     email: normalizeContactValue(row.email),
     instagram: normalizeContactValue(row.instagram),
     telegram: normalizeContactValue(row.telegram),
@@ -128,6 +129,7 @@ function clientFromRow(row: SourceRow): NewClient {
   const twoGisFirmId = extractTwoGisFirmId(twoGisUrl);
   if (!twoGisFirmId) throw new Error(`Не удалось извлечь 2GIS firm id из «${twoGisUrl}»`);
   const whatsapp = normalizeContactValue(row.whatsapp);
+  const phone = normalizeContactValue(row["телефон"]);
   return {
     twoGisFirmId,
     rank: requiredInteger(row.rank, "rank"),
@@ -140,8 +142,8 @@ function clientFromRow(row: SourceRow): NewClient {
     category: normalizeSourceValue(row["категория"]),
     address: normalizeSourceValue(row["адрес"]),
     whatsapp,
-    whatsappNormalized: normalizeWhatsAppNumber(whatsapp),
-    phone: normalizeContactValue(row["телефон"]),
+    whatsappNormalized: normalizePhoneNumber(whatsapp),
+    phone,
     email: normalizeContactValue(row.email),
     instagram: normalizeContactValue(row.instagram),
     telegram: normalizeContactValue(row.telegram),
