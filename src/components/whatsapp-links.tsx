@@ -18,7 +18,7 @@ export function WhatsAppLinks({
   className = "btn",
   label = "WhatsApp",
 }: WhatsAppLinksProps) {
-  const links = buildWhatsAppLinks(phone, whatsapp);
+  const links = buildWhatsAppLinks(whatsapp, phone);
   const visibleLinks = links.slice(0, MAX_VISIBLE_LINKS);
   const showNumber = links.length > 1;
 

@@ -1,8 +1,23 @@
 import { eq } from "drizzle-orm";
 
-import type { ActivityType, Owner } from "../lib/domain";
+import type { ActivityType, DealerStatus, Owner } from "../lib/domain";
 import { db, type TamyzDatabase } from "./client";
-import { activityLog, suppliers, type Supplier } from "./schema";
+import { activityLog, dealers, suppliers, type Dealer, type Supplier } from "./schema";
+
+export function updateDealerStatus(
+  dealerId: number,
+  status: DealerStatus,
+  database: TamyzDatabase = db,
+): Dealer {
+  const updated = database
+    .update(dealers)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(dealers.id, dealerId))
+    .returning()
+    .get();
+  if (!updated) throw new Error(`Дилер ${dealerId} не найден`);
+  return updated;
+}
 
 export type SupplierOperationalPatch = Partial<
   Pick<

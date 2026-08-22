@@ -33,6 +33,27 @@ export function PriorityBadge({ priority }: { priority: string }) {
   return <Badge tone={tone}>{priority}</Badge>;
 }
 
+export function DealerPriorityBadge({ priority }: { priority: string }) {
+  const tone = priority === "A" ? "success" : priority === "B" ? "warning" : "neutral";
+  return <Badge tone={tone}>{priority}</Badge>;
+}
+
+export function DealerStatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
+    candidate: "кандидат",
+    contacted: "связались",
+    interested: "заинтересован",
+    rejected: "отказ",
+  };
+  const tones: Record<string, BadgeTone> = {
+    candidate: "neutral",
+    contacted: "info",
+    interested: "success",
+    rejected: "danger",
+  };
+  return <Badge tone={tones[status] ?? "neutral"}>{labels[status] ?? status}</Badge>;
+}
+
 export function QualificationBadge({ result }: { result: "green" | "yellow" | "red" | string }) {
   if (result === "green") return <Badge tone="success">Зелёный · схема проходит</Badge>;
   if (result === "red") return <Badge tone="danger">Красный · стоп-фактор</Badge>;

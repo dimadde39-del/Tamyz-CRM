@@ -36,6 +36,19 @@ export const CLIENT_STATUSES = [
 
 export type ClientStatus = (typeof CLIENT_STATUSES)[number];
 
+export const DEALER_PRIORITIES = ["A", "B", "C"] as const;
+
+export type DealerPriority = (typeof DEALER_PRIORITIES)[number];
+
+export const DEALER_STATUSES = [
+  "candidate",
+  "contacted",
+  "interested",
+  "rejected",
+] as const;
+
+export type DealerStatus = (typeof DEALER_STATUSES)[number];
+
 export const CLIENT_REGISTRATION_STATUSES = [
   "черновик",
   "ожидает подтверждения",
