@@ -1,5 +1,5 @@
 import { desc, eq } from "drizzle-orm";
-import { ArrowLeft, ExternalLink, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, ExternalLink, Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +12,7 @@ import { PriorityBadge, QualificationBadge, StatusBadge } from "@/components/sta
 import { db } from "@/db/client";
 import { getSupplierById } from "@/db/queries";
 import { activityLog } from "@/db/schema";
+import { WhatsAppLinks } from "@/components/whatsapp-links";
 import { FIRST_SUPPLIER_MESSAGE } from "@/lib/domain";
 import { firstListedValue, formatDate } from "@/lib/format";
 import { formatBusinessDateTime } from "@/lib/time";
@@ -61,7 +62,7 @@ export default async function SupplierPage({
         <Panel title="Контакт и первое сообщение">
           <div className="grid gap-4 p-4 lg:grid-cols-[230px_minmax(0,1fr)]">
             <dl className="space-y-3 text-[12px]">
-              <div><dt className="label">WhatsApp</dt><dd className="font-medium">{firstListedValue(supplier.whatsapp) ?? "не найден"}</dd></div>
+              <div><dt className="label">WhatsApp</dt><dd className="font-medium">{firstListedValue(supplier.whatsapp) ?? firstListedValue(supplier.phone) ?? "не найден"}</dd></div>
               <div><dt className="label">Телефон</dt><dd className="break-words">{supplier.phone ?? "не найден"}</dd></div>
               <div><dt className="label">Email</dt><dd className="break-words">{supplier.email ?? "не найден"}</dd></div>
               <div><dt className="label">Сайт</dt><dd className="break-all">{supplier.website ? <a className="underline" href={supplier.website} target="_blank" rel="noreferrer">{supplier.website}</a> : "не найден"}</dd></div>
@@ -70,11 +71,7 @@ export default async function SupplierPage({
               <p className="label">Шаблон</p>
               <div className="whitespace-pre-wrap rounded border border-[var(--line)] bg-white p-3 text-[13px] leading-5">{FIRST_SUPPLIER_MESSAGE}</div>
               <div className="mt-3 flex flex-wrap gap-2">
-                {supplier.whatsappUrl ? (
-                  <a className="btn btn-primary" href={supplier.whatsappUrl} target="_blank" rel="noreferrer"><MessageCircle aria-hidden="true" size={15} /> Открыть WhatsApp</a>
-                ) : (
-                  <span className="btn" aria-disabled="true"><MessageCircle aria-hidden="true" size={15} /> WhatsApp недоступен</span>
-                )}
+                <WhatsAppLinks phone={supplier.phone} whatsapp={supplier.whatsapp} className="btn btn-primary" label="Открыть WhatsApp" />
                 <CopyButton value={FIRST_SUPPLIER_MESSAGE} label="Копировать текст" />
                 {firstListedValue(supplier.phone) ? <a className="btn" href={`tel:${firstListedValue(supplier.phone)}`}><Phone aria-hidden="true" size={15} /> Позвонить</a> : null}
                 <form action={markSupplierSentAction}>

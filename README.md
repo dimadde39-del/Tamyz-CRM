@@ -46,6 +46,7 @@ npx playwright install chromium
 Исходники сохранены в `data/source/`:
 
 - `shymkent_prof_chem_contacts.xlsx` — 61 поставщик и 250 клиентов;
+- `SCANDIC_Shymkent_market_research_2026-08-11.xlsx` — 21 потенциальный дилер SCANDIC в Шымкенте;
 - `shymkent_prof_chem_agent_test.md`;
 - `TAMYZ_FULL_HANDOFF_DISTRIBUTION.md`.
 
@@ -59,6 +60,7 @@ npx playwright install chromium
 - `/pipeline` — ручной контактный конвейер;
 - `/suppliers` и `/suppliers/[id]` — поиск, фильтры, ответ, квалификация, follow-up;
 - `/clients` и `/clients/[id]` — неактивированная база и реальные корзины;
+- `/dealers` — кандидаты A/B/C, быстрый статус и ручной переход в WhatsApp;
 - `/handoffs` — регистрации клиентов у поставщиков, письменные ответы и ручная передача;
 - `/economics` — точные сценарии заказов, сравнение поставщиков и калькулятор концентрата;
 - `/activities` — журнал переходов и ответов;

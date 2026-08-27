@@ -25,7 +25,7 @@ export function formatDateInput(value: Date | string | null | undefined) {
 }
 
 export function firstListedValue(value: string | null | undefined) {
-  return value?.split(/[;\n]/).map((item) => item.trim()).find(Boolean) ?? null;
+  return value?.split(/[,;\n/]/).map((item) => item.trim()).find(Boolean) ?? null;
 }
 
 export function compactText(value: string | null | undefined, length = 90) {

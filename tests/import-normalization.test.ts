@@ -50,6 +50,10 @@ describe("source import normalization", () => {
     expect(normalizeContactValue("не найдено")).toBeNull();
   });
 
+  it("keeps numeric Excel phone cells as plain digits", () => {
+    expect(normalizeContactValue(Number("8.7711919992e10"))).toBe("87711919992");
+  });
+
   it.each([
     ["высокий", "высокий"],
     [" HIGH ", "высокий"],

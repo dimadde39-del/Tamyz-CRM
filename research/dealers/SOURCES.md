@@ -1,0 +1,61 @@
+# Public dealer research sources
+
+The reusable extractor reads the public URLs below. Search snippets were used
+only for discovery; company records in the master file cite the verification
+pages themselves.
+
+- https://fbs-group.kz/divisions/too-beverage-trade
+- https://dudar.kz/ru/services
+- https://www.prima-group.kz/kontakty/
+- https://www.applecity.kz/contacts
+- https://www.aspan-asia.kz/
+- https://www.alidi.kz/ru/
+- https://www.f-food.kz/rus/fb.html
+- https://biznes-group.kz/
+- https://www.rgbrands.com/
+- https://starbrands-asia.kz/
+- https://altyn-alma.kz/
+- https://asiadistribution.kz/
+- https://richlife.kz/
+- https://sls.com.kz/
+- https://inalca.kz/ru/
+- https://ndc.kz/contacts/
+- https://www.modus-foods.kz/
+- https://sj-group.kz/altyn-taraz-traid
+- https://sj-group.kz/altyn-taraz-trade/
+- https://www.3klik.kz/info/bris-company/
+- https://www.optoviki.kz/1937
+- https://www.tassay.kz/en/contacts/
+- https://www.enbek.kz/ru/предприятие/361484
+- https://pnp-distr.com/
+- https://2gis.kz/shymkent/firm/70000001025780784/tab/info
+- https://www.common.kz/main.php?mod=contacts-shymkent
+- https://shop.common.kz/about/contacts/
+- https://greenhouse.kz/
+- https://greenhouse.kz/company-2/
+- https://shymkent.cataloxy-kz.ru/firms/filial-too-green-house-limited-v-gorode-shymkent.1735495_c.htm
+- https://bayansulu.kz/fillials/shyimkent/
+- https://www.rakhat.kz/en/our-addresses/regionalnye-predstavitelstva/
+- https://www.galanz.kz/distributors
+- https://www.group-ksk.com/
+- https://2gis.kz/shymkent/firm/70000001074352475/tab/info
+- https://2gis.kz/shymkent/firm/70000001110901403/tab/info
+- https://2gis.kz/shymkent/firm/70000001065607672/tab/info
+- https://2gis.kz/shymkent/firm/70000001026868468/tab/info
+- https://2gis.kz/shymkent/firm/70000001045294032/tab/info
+- https://2gis.kz/shymkent/firm/70000001099078285/tab/info
+- https://2gis.kz/shymkent/firm/70000001066141984/tab/info
+- https://2gis.kz/shymkent/firm/70000001094996927/tab/info
+- https://2gis.kz/shymkent/firm/70000001087791217/tab/info
+- https://ba.prg.kz/790000000-shymkent/200340007158-too-ermak-kz/
+- https://ba.prg.kz/790000000-shymkent/221140017154-too-tau-mart/
+- https://ba.prg.kz/790000000-shymkent/241040017134-too-red-stars/
+- https://ba.prg.kz/790000000-shymkent/250940003265-too-yug-treyd-grupp/
+- https://ba.prg.kz/790000000-shymkent/171241027703-filial-too-arafat-distribyushn-v-gorode-shymkent/
+- https://statsnet.co/companies/kz/52588958
+- https://www.volza.com/company-profile/ermak-kz-too-120320071/import/
+- https://www.trademo.com/companies/too-ermak-kz/47513566
+- https://www.metro-kz.com/magaziny/shymkent
+- https://www.vbk.kz/
+- https://dfz.kz/
+- https://shymkent.cataloxy-kz.ru/rabota/vacancy1067283398_pomoschnik-buhgaltera.htm

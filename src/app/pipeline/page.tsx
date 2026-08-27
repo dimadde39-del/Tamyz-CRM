@@ -1,4 +1,4 @@
-import { MessageCircle, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -8,6 +8,7 @@ import { Pagination } from "@/components/pagination";
 import { PipelineUpdateForm } from "@/components/pipeline-update-form";
 import { PriorityBadge, QualificationBadge, StatusBadge } from "@/components/status-badge";
 import { PageHeader, Panel } from "@/components/ui";
+import { WhatsAppLinks } from "@/components/whatsapp-links";
 import { listSuppliers, type SupplierListItem } from "@/db/queries";
 import { FIRST_SUPPLIER_MESSAGE, OWNERS } from "@/lib/domain";
 import { firstListedValue, formatDate, stringParam } from "@/lib/format";
@@ -98,7 +99,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
                   <p className="text-[10px] font-bold uppercase tracking-[0.08em]">Почему сейчас</p>
                   <p className="mt-1 font-medium">{queueReason(supplier)}</p>
                 </div>
-                <div><p className="label">WhatsApp</p><p className="font-medium">{firstListedValue(supplier.whatsapp) ?? "не найден"}</p></div>
+                <div><p className="label">WhatsApp</p><p className="font-medium">{firstListedValue(supplier.whatsapp) ?? firstListedValue(supplier.phone) ?? "не найден"}</p></div>
                 <div>
                   <p className="label">Телефон</p>
                   <p className="break-words">{firstListedValue(supplier.phone) ?? "не найден"}</p>
@@ -114,7 +115,7 @@ export default async function PipelinePage({ searchParams }: { searchParams: Pro
                 <p className="label">Готовое первое сообщение</p>
                 <div className="whitespace-pre-wrap rounded border border-[var(--line)] bg-white p-3 text-[13px] leading-5">{FIRST_SUPPLIER_MESSAGE}</div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {supplier.whatsappUrl ? <a className="btn btn-primary" href={supplier.whatsappUrl} target="_blank" rel="noreferrer"><MessageCircle aria-hidden="true" size={15} /> Открыть WhatsApp</a> : <span className="btn" aria-disabled="true"><MessageCircle aria-hidden="true" size={15} /> WhatsApp не найден</span>}
+                  <WhatsAppLinks phone={supplier.phone} whatsapp={supplier.whatsapp} className="btn btn-primary" label="Открыть WhatsApp" />
                   <CopyButton value={FIRST_SUPPLIER_MESSAGE} />
                   {firstListedValue(supplier.phone) ? <a className="btn" href={`tel:${firstListedValue(supplier.phone)}`}><Phone aria-hidden="true" size={15} /> Позвонить</a> : null}
                   <form action={markSupplierSentAction}>

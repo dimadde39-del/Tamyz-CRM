@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-import { FIRST_SUPPLIER_MESSAGE } from "../src/lib/domain";
-
 const supplierName = "GRASS Shop Kazakhstan";
 const followUpAction = "Уточнить у менеджера агентскую схему и защиту клиента";
 
@@ -10,13 +8,14 @@ test("поставщик → отправка → ответ → менедже�
 
   let card = page.getByTestId("pipeline-card").filter({ hasText: supplierName });
   await expect(card).toBeVisible();
-  const whatsAppLink = card.getByRole("link", { name: "Открыть WhatsApp" });
+  await expect(card.locator('a[href="https://wa.me/77053420811"]')).toBeVisible();
+  const whatsAppLink = card.locator('a[href="https://wa.me/77778689009"]');
   const href = await whatsAppLink.getAttribute("href");
   expect(href).not.toBeNull();
   const url = new URL(href as string);
   expect(url.hostname).toBe("wa.me");
   expect(url.pathname).toBe("/77778689009");
-  expect(url.searchParams.get("text")).toBe(FIRST_SUPPLIER_MESSAGE);
+  expect(url.search).toBe("");
 
   await card.getByRole("button", { name: "Отметить отправленным" }).click();
   await expect(page.getByRole("status")).toContainText("Отправка зафиксирована");

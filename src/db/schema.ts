@@ -5,6 +5,8 @@ import {
   CLIENT_REGISTRATION_RESPONSE_TYPES,
   CLIENT_REGISTRATION_STATUSES,
   CLIENT_STATUSES,
+  DEALER_PRIORITIES,
+  DEALER_STATUSES,
   OWNERS,
   PRIORITIES,
   SUPPLIER_STATUSES,
@@ -186,6 +188,58 @@ export const clients = sqliteTable(
     index("clients_rank_idx").on(table.rank),
     index("clients_status_idx").on(table.status),
     index("clients_priority_idx").on(table.priority),
+  ],
+);
+
+export const dealers = sqliteTable(
+  "dealers",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    externalKey: text("external_key").notNull(),
+    normalizedName: text("normalized_name").notNull(),
+    normalizedPhone: text("normalized_phone"),
+    rank: integer("rank").notNull(),
+    name: text("name").notNull(),
+    legalName: text("legal_name"),
+    city: text("city").notNull().default("Шымкент"),
+    address: text("address"),
+    phone: text("phone"),
+    additionalPhones: text("additional_phones"),
+    whatsapp: text("whatsapp"),
+    whatsappNormalized: text("whatsapp_normalized"),
+    email: text("email"),
+    website: text("website"),
+    social: text("social"),
+    regions: text("regions"),
+    categories: text("categories"),
+    brands: text("brands"),
+    channels: text("channels"),
+    confidence: text("confidence"),
+    score: integer("score"),
+    whatsappConfirmed: integer("whatsapp_confirmed", { mode: "boolean" }).notNull().default(false),
+    distributionEvidence: text("distribution_evidence"),
+    shymkentEvidence: text("shymkent_evidence"),
+    warehouseEvidence: text("warehouse_evidence"),
+    logisticsEvidence: text("logistics_evidence"),
+    salesTeamEvidence: text("sales_team_evidence"),
+    priority: text("priority", { enum: DEALER_PRIORITIES }).notNull(),
+    status: text("status", { enum: DEALER_STATUSES }).notNull().default("candidate"),
+    note: text("note"),
+    source: text("source"),
+    sourceUrl: text("source_url"),
+    sourceCheckedAt: text("source_checked_at"),
+    sourceImportedAt: integer("source_imported_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(now),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+  },
+  (table) => [
+    uniqueIndex("dealers_external_key_unique").on(table.externalKey),
+    uniqueIndex("dealers_normalized_name_unique").on(table.normalizedName),
+    index("dealers_normalized_phone_idx").on(table.normalizedPhone),
+    index("dealers_priority_idx").on(table.priority),
+    index("dealers_status_idx").on(table.status),
   ],
 );
 
@@ -398,6 +452,8 @@ export type Supplier = typeof suppliers.$inferSelect;
 export type NewSupplier = typeof suppliers.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
+export type Dealer = typeof dealers.$inferSelect;
+export type NewDealer = typeof dealers.$inferInsert;
 export type ActivityLogEntry = typeof activityLog.$inferSelect;
 export type ImportRun = typeof importRuns.$inferSelect;
 export type TestBasket = typeof testBaskets.$inferSelect;

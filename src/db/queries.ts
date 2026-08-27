@@ -1,9 +1,10 @@
 import { desc, eq } from "drizzle-orm";
 
 import {
-  buildWhatsAppUrl,
   getQualificationResult,
   type ClientRegistrationStatus,
+  type DealerPriority,
+  type DealerStatus,
   type Owner,
   type Priority,
   type SupplierStatus,
@@ -13,6 +14,7 @@ import {
   activityLog,
   clientRegistrations,
   clients,
+  dealers,
   importRuns,
   suppliers,
   type Client,
@@ -28,14 +30,12 @@ export interface SupplierFilters {
 
 export type SupplierListItem = Supplier & {
   qualificationResult: ReturnType<typeof getQualificationResult>;
-  whatsappUrl: string | null;
 };
 
 function decorateSupplier(supplier: Supplier): SupplierListItem {
   return {
     ...supplier,
     qualificationResult: getQualificationResult(supplier),
-    whatsappUrl: buildWhatsAppUrl(supplier.whatsapp),
   };
 }
 
@@ -87,6 +87,42 @@ export interface ClientFilters {
   priority?: Priority;
   owner?: Owner;
   status?: Client["status"];
+}
+
+export interface DealerFilters {
+  search?: string;
+  priority?: DealerPriority;
+  status?: DealerStatus;
+}
+
+export function listDealers(
+  filters: DealerFilters = {},
+  database: TamyzDatabase = db,
+) {
+  const search = filters.search?.trim().toLocaleLowerCase("ru");
+  return database
+    .select()
+    .from(dealers)
+    .all()
+    .filter((dealer) => {
+      if (filters.priority && dealer.priority !== filters.priority) return false;
+      if (filters.status && dealer.status !== filters.status) return false;
+      if (!search) return true;
+        return [
+          dealer.name,
+          dealer.legalName,
+          dealer.city,
+          dealer.regions,
+          dealer.address,
+          dealer.phone,
+          dealer.email,
+          dealer.categories,
+          dealer.brands,
+        ]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase("ru").includes(search));
+    })
+    .sort((left, right) => left.rank - right.rank || left.name.localeCompare(right.name, "ru"));
 }
 
 export function listClients(

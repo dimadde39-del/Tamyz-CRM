@@ -28,12 +28,16 @@ async function main(): Promise<void> {
     { db, sqlite },
     { migrate },
     { seedKdsOperationalRecord },
+    { importDealerResearch },
+    { importDealerWorkbook },
     { importSourceWorkbook },
     { applyJuly10FieldUpdate },
   ] = await Promise.all([
     import("../src/db/client"),
     import("drizzle-orm/better-sqlite3/migrator"),
     import("../src/db/services"),
+    import("../src/lib/import/dealer-research"),
+    import("../src/lib/import/dealers"),
     import("../src/lib/import/workbook"),
     import("../src/db/field-update"),
   ]);
@@ -41,9 +45,13 @@ async function main(): Promise<void> {
   try {
     migrate(db, { migrationsFolder: path.resolve(workspace, "drizzle") });
     const report = await importSourceWorkbook();
+    const dealerReport = await importDealerWorkbook({ database: db });
+    const dealerResearchReport = await importDealerResearch({ database: db });
     seedKdsOperationalRecord();
     applyJuly10FieldUpdate(db);
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    process.stdout.write(
+      `${JSON.stringify({ ...report, dealers: dealerReport, dealerResearch: dealerResearchReport }, null, 2)}\n`,
+    );
   } finally {
     sqlite.close();
   }

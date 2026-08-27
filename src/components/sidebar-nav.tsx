@@ -9,6 +9,7 @@ import {
   Handshake,
   ListTodo,
   LayoutDashboard,
+  Truck,
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +20,7 @@ const items = [
   { href: "/pipeline", label: "Конвейер", icon: ListTodo },
   { href: "/suppliers", label: "Поставщики", icon: Building2 },
   { href: "/clients", label: "Клиенты", icon: UsersRound },
+  { href: "/dealers", label: "Дилеры", icon: Truck },
   { href: "/handoffs", label: "Передачи клиентов", icon: Handshake },
   { href: "/economics", label: "Экономика", icon: Calculator },
   { href: "/test-baskets", label: "Тестовые корзины", icon: FlaskConical },

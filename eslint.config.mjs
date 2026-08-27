@@ -11,6 +11,10 @@ export default defineConfig([
     "playwright-report/**",
     "test-results/**",
     ".tmp/**",
+    ".playwright-cli/**",
+    ".research/**",
+    "outputs/**",
+    "research/dealers/.venv/**",
     "drizzle/**",
   ]),
 ]);

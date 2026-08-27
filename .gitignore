@@ -9,6 +9,7 @@
 /data/*.db
 /data/*.db-shm
 /data/*.db-wal
+/data/backups/
 
 # test output
 /playwright-report
@@ -22,6 +23,8 @@
 
 # temporary analysis files
 /.tmp
+/research/dealers/.venv/
+/research/dealers/__pycache__/
 
 # misc
 *.log
