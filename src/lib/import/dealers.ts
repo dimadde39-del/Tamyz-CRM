@@ -188,6 +188,8 @@ export async function importDealerWorkbook(
         byName.set(created.normalizedName, created);
         if (created.normalizedPhone) byPhone.set(created.normalizedPhone, created);
         counts.created += 1;
+      } else if (existing.source?.startsWith("TAMYZ dealer research")) {
+        counts.unchanged += 1;
       } else if (sourceChanged(existing, row)) {
         tx.update(dealers)
           .set({ ...row, sourceImportedAt: importedAt, updatedAt: importedAt })

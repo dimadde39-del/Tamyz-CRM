@@ -108,7 +108,17 @@ export function listDealers(
       if (filters.priority && dealer.priority !== filters.priority) return false;
       if (filters.status && dealer.status !== filters.status) return false;
       if (!search) return true;
-      return [dealer.name, dealer.legalName, dealer.city, dealer.address, dealer.phone, dealer.email]
+        return [
+          dealer.name,
+          dealer.legalName,
+          dealer.city,
+          dealer.regions,
+          dealer.address,
+          dealer.phone,
+          dealer.email,
+          dealer.categories,
+          dealer.brands,
+        ]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLocaleLowerCase("ru").includes(search));
     })

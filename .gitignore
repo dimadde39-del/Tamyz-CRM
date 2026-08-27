@@ -23,6 +23,8 @@
 
 # temporary analysis files
 /.tmp
+/research/dealers/.venv/
+/research/dealers/__pycache__/
 
 # misc
 *.log

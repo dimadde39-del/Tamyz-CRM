@@ -14,7 +14,7 @@ import { updateDealerStatusAction } from "./actions";
 export const metadata: Metadata = { title: "Дилеры" };
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 50;
 type SearchParams = Record<string, string | string[] | undefined>;
 
 const statusLabels: Record<string, string> = {
@@ -37,7 +37,7 @@ export default async function DealersPage({ searchParams }: { searchParams: Prom
       <PageHeader
         eyebrow={`${items.length} контактов по текущему фильтру`}
         title="Дилеры SCANDIC"
-        description="Шымкент · ручной outreach через WhatsApp · данные исследования от 11.08.2026"
+        description="Шымкент и Южный Казахстан · ручной outreach через WhatsApp · проверено 27.08.2026"
       />
       <Panel className="overflow-hidden">
         <form action="/dealers" method="get" className="grid gap-2 p-3 md:grid-cols-[minmax(260px,1.5fr)_180px_190px_auto]">
@@ -81,6 +81,11 @@ export default async function DealersPage({ searchParams }: { searchParams: Prom
                 <tr key={dealer.id} data-testid="dealer-row">
                   <td className="max-w-[360px]">
                     <p className="font-[700] text-[var(--ink)]">{dealer.name}</p>
+                    <p className="mt-1 text-[11px] font-semibold text-[var(--muted)]">
+                      {dealer.score !== null ? `${dealer.score}/100` : "без score"}
+                      {dealer.confidence ? ` · confidence: ${dealer.confidence}` : ""}
+                    </p>
+                    {dealer.categories ? <p className="mt-1 text-[11px] text-[var(--muted)]">{compactText(dealer.categories, 100)}</p> : null}
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{compactText(dealer.address, 90)}</p>
                     <p className="mt-1 text-[11px] text-[var(--muted)]">{compactText(dealer.note, 120)}</p>
                   </td>
@@ -104,6 +109,7 @@ export default async function DealersPage({ searchParams }: { searchParams: Prom
                     <div className="flex flex-wrap gap-1">
                       <WhatsAppLinks phone={dealer.whatsapp ? null : dealer.phone} whatsapp={dealer.whatsapp} className="btn btn-primary min-h-8" label="Написать" />
                     </div>
+                    {dealer.whatsapp ? <span className="mt-1 block text-[10px] text-[var(--muted)]">WhatsApp подтверждён</span> : dealer.phone ? <span className="mt-1 block text-[10px] text-[var(--muted)]">попробовать по основному номеру</span> : null}
                     {!dealer.phone && !dealer.whatsapp ? <span className="text-[11px] text-[var(--muted)]">номер не найден</span> : null}
                   </td>
                 </tr>
